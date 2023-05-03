@@ -18,10 +18,7 @@ struct SwiftAuthentificationApp: App {
     }
     var body: some Scene {
         WindowGroup{
-    NavigationStack
-        {
-            AuthentificationView()
-            }
+            RootView()
         }
     }
 }

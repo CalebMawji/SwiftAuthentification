@@ -7,34 +7,41 @@
 
 import SwiftUI
 
-import SwiftUI
-
 @MainActor
 final class SignInEmailViewModel: ObservableObject
 {
     @Published var email = ""
     @Published var password = ""
     
-    func signIn()
+    func signIn() async throws
     {
         guard !email.isEmpty, !password.isEmpty else
-        {print ("pas de courriel et/ou le mot de passe")
+        {print("Pas de courriel et/ou mot de passe")
             return
         }
-        Task{
-            do{
-                let returnedUserData = try await AuthentificationManager.shared.createUser(email: email, password: password)
-                print("Usager créé")
+    
+                let returnedUserData = try await AuthenticationManager.shared.signInUser(email: email, password: password)
+                print("Usager connecté")
                 print(returnedUserData)
-            }catch
-            {
-                print("Erreur: \(error)")
-            }
-        }
+        
     }
+    
+    func signUp() async throws
+    {
+        guard !email.isEmpty, !password.isEmpty else
+        {print("Pas de courriel et/ou mot de passe")
+            return
         }
+    
+                let returnedUserData = try await AuthenticationManager.shared.createUser(email: email, password: password)
+                print("Usager crée")
+                print(returnedUserData)
+        
+    }
+}
 struct SignInEmailView: View {
     @StateObject private var viewModel = SignInEmailViewModel()
+    @Binding var showSignInView: Bool
     var body: some View {
         VStack
         {
@@ -48,7 +55,26 @@ struct SignInEmailView: View {
                 .cornerRadius(10)
         
         Button{
-            viewModel.signIn()
+            Task{
+                do
+                {
+                    try await viewModel.signUp()
+                    showSignInView = false
+                    return
+                }catch
+                {
+                    print(error)
+                }
+                do
+                {
+                    try await viewModel.signIn()
+                    showSignInView = false
+                    return
+                }catch
+                {
+                    print(error)
+                }
+            }
         }label: {
             Text ("Se connecter")
                 .font(.headline)
@@ -70,7 +96,7 @@ struct SignInEmailView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationStack
         {
-            SignInEmailView()
+            SignInEmailView(showSignInView: .constant(false))
         }
     }
 }
