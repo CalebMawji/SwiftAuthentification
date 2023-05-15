@@ -8,95 +8,96 @@
 import SwiftUI
 
 @MainActor
-final class SignInEmailViewModel: ObservableObject
-{
+final class SignInViewModel: ObservableObject {
+    @Published var name = ""
+    @Published var age = ""
     @Published var email = ""
     @Published var password = ""
     
-    func signIn() async throws
-    {
-        guard !email.isEmpty, !password.isEmpty else
-        {print("Pas de courriel et/ou mot de passe")
+    func signIn() async throws {
+        guard !name.isEmpty, !age.isEmpty, !email.isEmpty, !password.isEmpty else {
+            print("Please fill in all fields.")
             return
         }
-    
-                let returnedUserData = try await AuthenticationManager.shared.signInUser(email: email, password: password)
-                print("Usager connecté")
-                print(returnedUserData)
         
+        let returnedUserData = try await AuthenticationManager.shared.signInUser(name: name, age: age, email: email, password: password)
+        print("User signed in")
+        print(returnedUserData)
     }
     
-    func signUp() async throws
-    {
-        guard !email.isEmpty, !password.isEmpty else
-        {print("Pas de courriel et/ou mot de passe")
+    func signUp() async throws {
+        guard !name.isEmpty, !age.isEmpty, !email.isEmpty, !password.isEmpty else {
+            print("Please fill in all fields.")
             return
         }
-    
-                let returnedUserData = try await AuthenticationManager.shared.createUser(email: email, password: password)
-                print("Usager crée")
-                print(returnedUserData)
         
+        let returnedUserData = try await AuthenticationManager.shared.createUser(name: name, age: age, email: email, password: password)
+        print("User created")
+        print(returnedUserData)
     }
 }
-struct SignInEmailView: View {
-    @StateObject private var viewModel = SignInEmailViewModel()
+
+struct SignInView: View {
+    @StateObject private var viewModel = SignInViewModel()
     @Binding var showSignInView: Bool
+    
     var body: some View {
-        VStack
-        {
-            TextField("Email...",text: $viewModel.email)
-                .padding()
-                .background (Color.gray.opacity(0.3))
-                .cornerRadius(10)
-            SecureField("Mot de Passe...",text:$viewModel.password)
+        VStack {
+            TextField("Name", text: $viewModel.name)
                 .padding()
                 .background(Color.gray.opacity(0.3))
                 .cornerRadius(10)
-        
-        Button{
-            Task{
-                do
-                {
-                    try await viewModel.signUp()
-                    showSignInView = false
-                    return
-                }catch
-                {
-                    print(error)
-                }
-                do
-                {
-                    try await viewModel.signIn()
-                    showSignInView = false
-                    return
-                }catch
-                {
-                    print(error)
-                }
-            }
-        }label: {
-            Text ("Se connecter")
-                .font(.headline)
-                .foregroundColor(.white)
-                .frame (height: 55)
-                .frame (maxWidth: .infinity)
-                .background(Color.blue)
+            TextField("Age", text: $viewModel.age)
+                .padding()
+                .background(Color.gray.opacity(0.3))
                 .cornerRadius(10)
+            TextField("Email", text: $viewModel.email)
+                .padding()
+                .background(Color.gray.opacity(0.3))
+                .cornerRadius(10)
+            SecureField("Password", text: $viewModel.password)
+                .padding()
+                .background(Color.gray.opacity(0.3))
+                .cornerRadius(10)
+            
+            Button {
+                Task {
+                    do {
+                        try await viewModel.signUp()
+                        showSignInView = false
+                        return
+                    } catch {
+                        print(error)
+                    }
+                    do {
+                        try await viewModel.signIn()
+                        showSignInView = false
+                        return
+                    } catch {
+                        print(error)
+                    }
+                }
+            } label: {
+                Text("Sign In")
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .frame(height: 55)
+                    .frame(maxWidth: .infinity)
+                    .background(Color.blue)
+                    .cornerRadius(10)
             }
-        Spacer()
+            
+            Spacer()
         }
         .padding()
-        .navigationTitle("Login avec email")
+        .navigationTitle("Sign In")
     }
 }
-    
 
-struct SignInEmailView_Previews: PreviewProvider {
+struct SignInView_Previews: PreviewProvider {
     static var previews: some View {
-        NavigationStack
-        {
-            SignInEmailView(showSignInView: .constant(false))
+        NavigationView {
+            SignInView(showSignInView: .constant(false))
         }
     }
 }
